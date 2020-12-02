@@ -11,7 +11,13 @@
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/chrispiciullo/commando-provider-mysql/issues"
-  },
+	},
+	"keywords": [
+    "discord.js",
+    "discordjs-commando",
+    "mysql",
+    "mariadb"
+  ],
   "homepage": "https://github.com/chrispiciullo/commando-provider-mysql#readme",
   "dependencies": {
     "mysql2": "^2.2.5"
