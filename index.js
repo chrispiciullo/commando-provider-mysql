@@ -5,7 +5,7 @@
  * Website: https://github.com/chrispiciullo/commando-provider-mysql
  * License: MIT
 */
-const SettingProvider = require('discord.js-commando').SettingProvider;
+const SettingProvider = require('discord.js-commando').SettingProvider
 
 /**
  * Uses an MySQL database to store settings with guilds
@@ -24,7 +24,7 @@ class MySQLProvider extends SettingProvider {
 	constructor(db) {
 		super();
 
-		this.db = db;
+		this.db = db
 
 		/**
 		 * Client that the provider is for (set once the client is ready, after using {@link CommandoClient#setProvider})
@@ -32,74 +32,74 @@ class MySQLProvider extends SettingProvider {
 		 * @type {CommandoClient}
 		 * @readonly
 		 */
-		Object.defineProperty(this, 'client', { value: null, writable: true });
+		Object.defineProperty(this, 'client', { value: null, writable: true })
 
 		/**
 		 * Settings cached in memory, mapped by guild ID (or 'global')
 		 * @type {Map}
 		 * @private
 		 */
-		this.settings = new Map();
+		this.settings = new Map()
 
 		/**
 		 * Listeners on the Client, mapped by the event name
 		 * @type {Map}
 		 * @private
 		 */
-		this.listeners = new Map();
+		this.listeners = new Map()
 	}
 
 	async init(client) {
 		this.client = client;
-		await this.db.execute('CREATE TABLE IF NOT EXISTS `settings` (`guild` VARCHAR(250) NOT NULL, `settings` TEXT NOT NULL , PRIMARY KEY (`guild`))');
+		await this.db.execute('CREATE TABLE IF NOT EXISTS `settings` (`guild` VARCHAR(250) NOT NULL, `settings` TEXT NOT NULL , PRIMARY KEY (`guild`))')
 
 		// Load all settings
 		const rows = await this.db.execute('SELECT guild, settings FROM settings').then((res) => res[0]);
 		for(const row of rows) {
-			let settings;
+			let settings
 			try {
-				settings = JSON.parse(row.settings);
+				settings = JSON.parse(row.settings)
 			} catch(err) {
 				client.emit('warn', `MySQLProvider couldn't parse the settings stored for guild ${row.guild}.`);
-				continue;
+				continue
 			}
 
 			const guild = row.guild !== '0' ? row.guild : 'global';
-			this.settings.set(guild, settings);
+			this.settings.set(guild, settings)
 
 			if(guild !== 'global' && !client.guilds.cache.has(row.guild) || !client.guilds.has(row.guild)) {
-      	continue;
+      	continue
       }
 
-			this.setupGuild(guild, settings);
+			this.setupGuild(guild, settings)
 		}
 
 		// Listen for changes
 		this.listeners
 			.set('commandPrefixChange', (guild, prefix) => {
-				this.set(guild, 'prefix', prefix);
+				this.set(guild, 'prefix', prefix)
 			})
 			.set('commandStatusChange', (guild, command, enabled) => {
-				this.set(guild, `cmd-${command.name}`, enabled);
+				this.set(guild, `cmd-${command.name}`, enabled)
 			})
 			.set('groupStatusChange', (guild, group, enabled) => {
-				this.set(guild, `grp-${group.id}`, enabled);
+				this.set(guild, `grp-${group.id}`, enabled)
 			})
 			.set('guildCreate', guild => {
-				const settings = this.settings.get(guild.id);
+				const settings = this.settings.get(guild.id)
 				if(!settings) {
-					return;
+					return
 				}
 
-				this.setupGuild(guild.id, settings);
+				this.setupGuild(guild.id, settings)
 			})
 			.set('commandRegister', command => {
 				for(const [guild, settings] of this.settings) {
 					if(guild !== 'global' && !client.guilds.cache.get(guild) || !client.guilds.has(guild)) {
-						continue;
+						continue
 					}
 
-					this.setupGuildCommand(client.guilds.cache.get(guild) || client.guilds.get(guild), command, settings);
+					this.setupGuildCommand(client.guilds.cache.get(guild) || client.guilds.get(guild), command, settings)
 				}
 			})
 			.set('groupRegister', group => {
@@ -108,75 +108,75 @@ class MySQLProvider extends SettingProvider {
 						continue;
 					}
 
-					this.setupGuildGroup(client.guilds.cache.get(guild) || client.guilds.get(guild), group, settings);
+					this.setupGuildGroup(client.guilds.cache.get(guild) || client.guilds.get(guild), group, settings)
 				}
 			});
 
 			for(const [event, listener] of this.listeners) {
-				client.on(event, listener);
+				client.on(event, listener)
 			}
 	}
 
 	async destroy() {
 		// Remove all listeners from the client
 		for(const [event, listener] of this.listeners) {
-			this.client.removeListener(event, listener);
+			this.client.removeListener(event, listener)
 		}
 
-		this.listeners.clear();
+		this.listeners.clear()
 	}
 
 	get(guild, key, defVal) {
-		const settings = this.settings.get(this.constructor.getGuildID(guild));
-		return (settings ? (typeof settings[key] !== 'undefined' ? settings[key] : defVal) : defVal);
+		const settings = this.settings.get(this.constructor.getGuildID(guild))
+		return (settings ? (typeof settings[key] !== 'undefined' ? settings[key] : defVal) : defVal)
 	}
 
 	async set(guild, key, val) {
-		guild = this.constructor.getGuildID(guild);
-		let settings = this.settings.get(guild);
+		guild = this.constructor.getGuildID(guild)
+		let settings = this.settings.get(guild)
 
 		if(!settings) {
-			settings = {};
-			this.settings.set(guild, settings);
+			settings = {}
+			this.settings.set(guild, settings)
 		}
 
 		settings[key] = val;
 
-		await this.db.execute('REPLACE INTO settings VALUES(?, ?)', [ guild !== 'global' ? guild : 0, JSON.stringify(settings) ]);
+		await this.db.execute('REPLACE INTO settings VALUES(?, ?)', [ guild !== 'global' ? guild : 0, JSON.stringify(settings) ])
 		if(guild === 'global') {
-			this.updateOtherShards(key, val);
+			this.updateOtherShards(key, val)
 		}
 
 		return val;
 	}
 
 	async remove(guild, key) {
-		guild = this.constructor.getGuildID(guild);
-		const settings = this.settings.get(guild);
+		guild = this.constructor.getGuildID(guild)
+		const settings = this.settings.get(guild)
 
 		if(!settings || typeof settings[key] === 'undefined') {
-			return undefined;
+			return undefined
 		}
 
 		const val = settings[key];
 		settings[key] = undefined;
-		await this.db.execute('REPLACE INTO settings VALUES(?, ?)', [ guild !== 'global' ? guild : 0, JSON.stringify(settings) ]);
+		await this.db.execute('REPLACE INTO settings VALUES(?, ?)', [ guild !== 'global' ? guild : 0, JSON.stringify(settings) ])
 
 		if(guild === 'global') {
-			this.updateOtherShards(key, undefined);
+			this.updateOtherShards(key, undefined)
 		}
 
-		return val;
+		return val
 	}
 
 	async clear(guild) {
-		guild = this.constructor.getGuildID(guild);
+		guild = this.constructor.getGuildID(guild)
 		if(!this.settings.has(guild)) {
-			return;
+			return
 		}
 
 		this.settings.delete(guild);
-		await this.db.execute('DELETE FROM settings WHERE guild = ?', [ (guild !== 'global' ? guild : 0) ]);
+		await this.db.execute('DELETE FROM settings WHERE guild = ?', [ (guild !== 'global' ? guild : 0) ])
 	}
 
 	/**
@@ -187,27 +187,27 @@ class MySQLProvider extends SettingProvider {
 	 */
 	setupGuild(guild, settings) {
 		if(typeof guild !== 'string') {
-			throw new TypeError('The guild must be a guild ID or "global".');
+			throw new TypeError('The guild must be a guild ID or "global".')
 		}
 
-		guild = this.client.guilds.get(guild) || this.client.guilds.cache.get(guild) || null;
+		guild = this.client.guilds.get(guild) || this.client.guilds.cache.get(guild) || null
 
 		// Load the command prefix
 		if(typeof settings.prefix !== 'undefined') {
 			if(guild) {
-				guild._commandPrefix = settings.prefix;
+				guild._commandPrefix = settings.prefix
 			} else {
-				this.client._commandPrefix = settings.prefix;
+				this.client._commandPrefix = settings.prefix
 			}
 		}
 
 		// Load all command/group statuses
 		for(const command of this.client.registry.commands.values()) {
-			this.setupGuildCommand(guild, command, settings);
+			this.setupGuildCommand(guild, command, settings)
 		}
 
 		for(const group of this.client.registry.groups.values()) {
-			this.setupGuildGroup(guild, group, settings);
+			this.setupGuildGroup(guild, group, settings)
 		}
 	}
 
@@ -220,14 +220,14 @@ class MySQLProvider extends SettingProvider {
 	 */
 	setupGuildCommand(guild, command, settings) {
 		if(typeof settings[`cmd-${command.name}`] === 'undefined') {
-			return;
+			return
 		}
 
 		if(guild) {
 			if(!guild._commandsEnabled) guild._commandsEnabled = {};
-			guild._commandsEnabled[command.name] = settings[`cmd-${command.name}`];
+			guild._commandsEnabled[command.name] = settings[`cmd-${command.name}`]
 		} else {
-			command._globalEnabled = settings[`cmd-${command.name}`];
+			command._globalEnabled = settings[`cmd-${command.name}`]
 		}
 	}
 
@@ -240,14 +240,14 @@ class MySQLProvider extends SettingProvider {
 	 */
 	setupGuildGroup(guild, group, settings) {
 		if(typeof settings[`grp-${group.id}`] === 'undefined') {
-			return;
+			return
 		}
 
 		if(guild) {
-			if(!guild._groupsEnabled) guild._groupsEnabled = {};
-			guild._groupsEnabled[group.id] = settings[`grp-${group.id}`];
+			if(!guild._groupsEnabled) guild._groupsEnabled = {}
+			guild._groupsEnabled[group.id] = settings[`grp-${group.id}`]
 		} else {
-			group._globalEnabled = settings[`grp-${group.id}`];
+			group._globalEnabled = settings[`grp-${group.id}`]
 		}
 	}
 
@@ -259,17 +259,17 @@ class MySQLProvider extends SettingProvider {
 	 */
 	updateOtherShards(key, val) {
 		if(!this.client.shard) {
-			return;
+			return
 		}
 
 		key = JSON.stringify(key);
-		val = (typeof val !== 'undefined' ? JSON.stringify(val) : 'undefined');
+		val = (typeof val !== 'undefined' ? JSON.stringify(val) : 'undefined')
 
 		this.client.shard.broadcastEval(`
 			if(this.shard.id !== ${this.client.shard.id} && this.provider && this.provider.settings) {
-				this.provider.settings.global[${key}] = ${val};
+				this.provider.settings.global[${key}] = ${val}
 			}
-		`);
+		`)
 	}
 
 }
