@@ -6,9 +6,8 @@ This works with discord.js v12 but should be backwards compatible. That remains 
 **This is completely unsupported.** It works for me, it may not work for you. I'm unable to provide support for this provider.
 
 # Installation
-(I'm working on getting this to npmjs.com)
 ```
-npm install https://github.com/chrispiciullo/commando-provider-mysql
+npm install commando-provider-mysql
 ```
 
 # Usage (Example)
