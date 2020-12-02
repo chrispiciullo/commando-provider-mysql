@@ -1,0 +1,19 @@
+{
+  "name": "commando-provider-mysql",
+  "version": "1.0.0",
+  "description": "Uses a MySQL or MariaDB (recommended) database to store guild settings. It requires the mysql2 npm package.",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chrispiciullo/commando-provider-mysql.git"
+  },
+  "author": "Chris Piciullo",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/chrispiciullo/commando-provider-mysql/issues"
+  },
+  "homepage": "https://github.com/chrispiciullo/commando-provider-mysql#readme",
+  "dependencies": {
+    "mysql2": "^2.2.5"
+  }
+}
