@@ -19,12 +19,12 @@ class MySQLProvider extends SettingProvider {
 	 */
 
 	/**
-	 * @param {PromiseConnection} dbName - MySQL Connection for the provider
+	 * @param {PromiseConnection} db - MySQL Connection for the provider
 	 */
-	constructor(client, dbName) {
+	constructor(db) {
 		super();
 
-		this.db = client.db(dbName);
+		this.db = db;
 
 		/**
 		 * Client that the provider is for (set once the client is ready, after using {@link CommandoClient#setProvider})
