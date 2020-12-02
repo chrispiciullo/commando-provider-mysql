@@ -1,2 +1,50 @@
 # MySQL/MariaDB Provider for Discord.js-Commando
 Uses a MySQL or MariaDB (recommended) database to store guild settings. It requires the `mysql2` npm package.
+
+This works with discord.js v12
+
+# Installation
+(I'm working on getting this to npmjs.com)
+```
+npm install https://github.com/chrispiciullo/commando-provider-mysql
+```
+
+# Usage (Example)
+```js
+const { CommandoClient } = require('discord.js-commando')
+const mysql = require('mysql2/promise')
+const mysqlProvider = require('commando-provider-mysql')
+const path = require('path')
+
+const client = new CommandoClient({
+	commandPrefix: '?',
+	owner: 'your-owner-id',
+})
+
+mysql.createConnection({
+	host: 'mysql-host',
+	user: 'mysql-user',
+	password: 'mysql-password',
+	database: 'mysql-db'
+}).then((db) => {
+	client.setProvider(new mysqlProvider(db))
+})
+
+client.registry
+	.registerDefaultTypes()
+	.registerGroups([
+		['first', 'Your First Command Group'],
+	])
+	.registerDefaultGroups()
+	.registerDefaultCommands()
+	.registerCommandsIn(path.join(__dirname, 'commands'))
+
+client.once('ready', () => {
+	console.log(`Logged in as ${client.user.tag}! (${client.user.id})`)
+	client.user.setActivity('with Commando');
+})
+
+client.on('error', console.error)
+
+client.login('your-token-goes-here')
+```
