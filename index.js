@@ -67,7 +67,7 @@ class MySQLProvider extends SettingProvider {
 			const guild = row.guild !== '0' ? row.guild : 'global';
 			this.settings.set(guild, settings)
 
-			if(guild !== 'global' && !client.guilds.cache.has(row.guild) || !client.guilds.has(row.guild)) {
+			if(guild !== 'global' && !client.guilds.cache.has(row.guild)) {
       	continue
       }
 
@@ -190,7 +190,7 @@ class MySQLProvider extends SettingProvider {
 			throw new TypeError('The guild must be a guild ID or "global".')
 		}
 
-		guild = this.client.guilds.get(guild) || this.client.guilds.cache.get(guild) || null
+		guild = this.client.guilds.cache.get(guild) || null
 
 		// Load the command prefix
 		if(typeof settings.prefix !== 'undefined') {
