@@ -1,6 +1,6 @@
 {
   "name": "commando-provider-mysql",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Uses a MySQL or MariaDB (recommended) database to store guild settings. It requires the mysql2 npm package.",
   "main": "index.js",
   "repository": {
@@ -13,8 +13,12 @@
     "url": "https://github.com/chrispiciullo/commando-provider-mysql/issues"
 	},
 	"keywords": [
-    "discord.js",
-    "discordjs-commando",
+		"bot",
+		"discord",
+		"discord-bot",
+		"discord.js",
+		"discord.js-commando",
+		"discordjs-commando",
     "mysql",
     "mariadb"
   ],
